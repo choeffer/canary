@@ -294,6 +294,6 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,treshold=1.
   #combine all data.frames to one big data.frame for the results return value
   results <- cbind(subset_used_timestamps,subset_used_return,calc_residuals,events_col,events,events_col_bed,events_bed,events_final)
   
-  #return value of the function
+  #return the result data frame
   return(results)
 }
