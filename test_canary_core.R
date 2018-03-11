@@ -20,8 +20,8 @@
 ##
 #########################################################################
 
-#set working directory, test_canary_core.R and canary_core.R should be in this directory
-setwd("~/Dokumente/AIT_Master/3rd_semester/case_study_bartz/R_data/splitted_up")
+#set working directory, test_canary_core.R, canary_core.R and sample_data should be in this directory
+setwd("~/Dokumente/AIT_Master/3rd_semester/case_study_bartz/canary")
 
 #clear Environment (for testing/developing the code)
 rm(list=ls())
