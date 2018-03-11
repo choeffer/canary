@@ -24,7 +24,7 @@
 #########################################################################
 
 #define function offline_mode with given default values which can be called from another R script
-offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,treshold=1.5,used_algo=lm,bed_window=10,prob_bed=0.01,bed_tresh=0.85,debug_flag=FALSE,debug_number_iteration=2030,...){
+offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,treshold=1.5,used_algo=lm,bed_window=5,prob_bed=0.01,bed_tresh=0.975,debug_flag=FALSE,debug_number_iteration=2040,...){
   
   #how to pass variables to a function 
   #https://cran.r-project.org/doc/manuals/r-devel/R-intro.html#Named-arguments-and-defaults
@@ -87,10 +87,7 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,treshold=1.
   if((window_size+bed_window)>number_iteration){
     stop("window size + bed_window=",window_size+bed_window," is bigger than number_iteration=",number_iteration,". In this case function offline_mode will not work properly.")
   }
-  
-  #define sigma (in this case one, because SD of normalized data is ~1)
-  sigma <- 1
-  
+
   ### BED (Binomial Event Discriminator)
   #define a the function for BED see: https://www.osti.gov/servlets/purl/1267022
   binevdis <- function(r,n,p){
@@ -106,6 +103,10 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,treshold=1.
   
   ### create empty data.frame as a blueprint for adding the timestamps of the loaded_data while filling the window
   subset_used_timestamps <- loaded_data[0,1, drop = FALSE]
+  
+  #create empty data frame for residuals and standard deviation of each column, defined in vals, in the window
+  temp_res_sd<-setNames(as.data.frame(matrix(ncol = length(vals), nrow = 2)),vals)
+  row.names(temp_res_sd)<-c("res","sd")
   
   ### create data.frame for residuals of each selected column (defined in vals)
   #create empty variable
@@ -138,7 +139,8 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,treshold=1.
   ### create data.frame for BED for each selected column (defined in vals)
   #create empty variable
   used_names_bed <- NULL
-  #fill variable with the needed names for the column specific probability of an event data.frame and assign the needed column names to the column specific probability of an event data.frame
+  #fill variable with the needed names for the column specific probability of an event data.frame and assign the needed column 
+  #names to the column specific probability of an event data.frame
   used_names_bed <- paste0(vals, "_prob_event")
   #create data.frame for BED results saving for each column used
   events_col_bed <- setNames(as.data.frame(matrix(ncol = length(used_names_bed), nrow = 0)),used_names_bed)
@@ -159,21 +161,22 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,treshold=1.
 
   ############### loop over the number of rows (defined by number_iteration) in the loaded_data data.frame ###############
   
-  #fill subset_used and subset_used_timestamps until window is filled with enough observations
+  #fill subset_used until window is filled with enough observations
   subset_used <- subset_loaded_data[1:(window_size-1),]
-  subset_used_timestamps <- loaded_data[1:(window_size-1),1,drop = FALSE]
+  #subset_used_return will be used later for returning the original values from the loaded_data
+  #because the data in subset_used will be modified during the for loop
+  subset_used_return <- subset_loaded_data[1:number_iteration,]
+  #fill subset_used_timestamps
+  subset_used_timestamps <- loaded_data[1:number_iteration,1,drop = FALSE]
 
   #start loop of the canary offline mode with adding each time a new row/element to the window and perform the calculations
   for(row in window_size:number_iteration){
     
-    #add new row to subset_used
+    #add new row to subset_used and subset_used_print
     subset_used <- rbind(subset_used,subset_loaded_data[row,])
-    
-    #add new timestamp to each row
-    subset_used_timestamps <- rbind(subset_used_timestamps,loaded_data[row,1,drop = FALSE])
-      
-    #create empty variable for temp_residuals
-    temp_residuals <- NULL
+
+    #reset all values of temp_res_sd for next loop
+    temp_res_sd[]<-NA
     
     #take the last observations of subsed_used which fit the window_size, so the observations which are in the window
     defined_window <- tail(subset_used,window_size)
@@ -183,7 +186,7 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,treshold=1.
     
     #normalize data; scale returns a matrix object, therefore the object is transformed back to a data.frame
     scaled_defined_window <- as.data.frame(scale(defined_window))
-
+    
     #check if one or more NaN values are in the scaled_defined_window (as.matrix is needed because this function does not work with a data.frame)
     if(any(is.nan(as.matrix(scaled_defined_window)))){
        stop("Normalized data in the window contains NaN values. This might crash the used_algo, therefore function offline_mode stops")
@@ -205,22 +208,24 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,treshold=1.
       used_model <- used_algo(formula = as.formula(paste0(used_name, " ~ . ")), data = scaled_defined_window_last_row_rm,...)
       pred_value <- predict(used_model, scaled_defined_window_last_row)
       #calculate residual between predicted and real value. unname() is used because return value is a named num and abs() is used to get absolut value
-      pred_residual <- abs(unname(pred_value-scaled_defined_window_last_row[,used_name]))
-      #assign pred_residual to the apppropriate column in the calc_residuals data.frame
-      calc_residuals[row,paste0(used_name, "_residual")] <- pred_residual
-      #assign the pred_residual to a temp variable which is used to find the biggest residual
-      temp_residuals[i] <- pred_residual
-      
-      #check if outlier or not for each column separately and store it in the events_col data.frame
+      temp_res_sd["res",used_name] <- abs(unname(pred_value-scaled_defined_window_last_row[,used_name]))
+      #assign residual to the apppropriate column in the calc_residuals data.frame
+      calc_residuals[row,paste0(used_name, "_residual")] <- temp_res_sd["res",used_name]
+      #calculate sd for this column in the window
+      temp_res_sd["sd",used_name]<-sd(defined_window[,used_name],na.rm = TRUE)
+      #print(sd(defined_window[,"B_TOC_VAL"],na.rm=TRUE))
+
+      #check if outlier or not for each column separately (residual classification) and store it in the events_col data.frame
+      #additional functionality which is added and is not in CANARY
       #check for NA values because they brake the if statement
-      if(!is.na(pred_residual)){
+      if(!is.na(temp_res_sd["res",used_name])){
         #outlier
-        if(pred_residual>treshold*sigma){
+        if(temp_res_sd["res",used_name]>treshold*temp_res_sd["sd",used_name]){
           #add event = TRUE to events_col data.frame
           events_col[row,paste0(used_name,"_event")]=TRUE
         }
         #backround
-        if(pred_residual<=treshold*sigma){
+        if(temp_res_sd["res",used_name]<=treshold*temp_res_sd["sd",used_name]){
           #add event = FALSE to events_col data.frame
           events_col[row,paste0(used_name,"_event")]=FALSE
         }
@@ -232,6 +237,7 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,treshold=1.
       
       ### BED analysis for each column
       #check if all of the last rows in events_col, defined by the bed_window, contain no NA values -> so are valid for BED analysis
+      #additional functionality which is added and is not in CANARY itself
       if(!any(is.na(tail(events_col[,paste0(used_name,"_event")],bed_window)))){
         #how often was an event detected in the bed_window? event = TRUE https://stackoverflow.com/questions/2190756/how-to-count-true-values-in-a-logical-vector
         occur_col_true<-sum(tail(events_col[,paste0(used_name,"_event")],bed_window),na.rm=TRUE)
@@ -239,21 +245,25 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,treshold=1.
         events_col_bed[row,paste0(used_name, "_prob_event")]<-1-binevdis(occur_col_true,bed_window,prob_bed)
       }
     }
-    #find biggest residual in temp_residuals and compare it with treshold
-    index_biggest_res<-which.max(temp_residuals)
-    max_temp_residuals<-temp_residuals[index_biggest_res]
-    #check if event or not
+    #find biggest residual in temp_res_sd and compare it with treshold
+    index_biggest_res<-which.max(temp_res_sd["res",])
+    max_rs<-temp_res_sd["res",index_biggest_res]
+    #check if event or not (Result outlier Classification)
     #check for existence of NA values because they break the if statement
-    if(length(max_temp_residuals) > 0){
+    if(length(max_rs) > 0){
       #outlier
-      if(max_temp_residuals>treshold*sigma){
+      if(max_rs>treshold*temp_res_sd["sd",index_biggest_res]){
         #add event = TRUE to events data.frame
         events[row,"Event"] <- TRUE
+        #remove value from the column from subset_used which is in this row the source for the outlier classification so that it is excluded from
+        #the values used to predict water quality at next time step needs to be checked if assigning there NA is the proper way to solve it or not
+        subset_used[row,colnames(temp_res_sd[index_biggest_res])]<-NA
       }
       #backround
-      if(max_temp_residuals<=treshold*sigma){
+      if(max_rs<=treshold*temp_res_sd["sd",index_biggest_res]){
         #add event = FALSE to events data.frame
         events[row,"Event"] <- FALSE
+        
       }
     }
     else{
@@ -282,7 +292,7 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,treshold=1.
   }
   
   #combine all data.frames to one big data.frame for the results return value
-  results <- cbind(subset_used_timestamps,subset_used,calc_residuals,events_col,events,events_col_bed,events_bed,events_final)
+  results <- cbind(subset_used_timestamps,subset_used_return,calc_residuals,events_col,events,events_col_bed,events_bed,events_final)
   
   #return value of the function
   return(results)

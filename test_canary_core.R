@@ -37,9 +37,9 @@ param<-list(
   loaded_data = read.csv("sample_data/test_station_b.csv"),
   
   #vector of column names of the loaded_data passed to the function to select which columns to be used for the analyzis
-  vals = c("B_CL2_VAL","B_TURB_VAL","B_PH_VAL","B_TOC_VAL","B_COND_VAL","B_TEMP_VAL","B_PLNT_PH_VAL","B_PLNT_TURB_VAL","B_PLNT_CL2_VAL"),
+  #vals = c("B_CL2_VAL","B_TURB_VAL","B_PH_VAL","B_TOC_VAL","B_COND_VAL","B_TEMP_VAL","B_PLNT_PH_VAL","B_PLNT_TURB_VAL","B_PLNT_CL2_VAL"),
   #vals = c("B_TEMP_VAL","B_PLNT_PH_VAL","B_PLNT_TURB_VAL","B_PLNT_CL2_VAL"),
-  #vals = c("B_TEMP_VAL","B_PLNT_PH_VAL"),
+  vals = c("B_TEMP_VAL","B_PLNT_PH_VAL"),
   
   #define window size
   window_size = 2000,
@@ -58,16 +58,16 @@ param<-list(
   
   ### BED (Binomial Event Discriminator) settings ###
   #define how many rows are taken for the BED function
-  bed_window=10,
+  bed_window=5,
   #define probability for BED function
   prob_bed=0.01,
   #define treshold probability if event is detected or not
-  bed_tresh=0.85,
+  bed_tresh=0.975,
   
   #debug/test mode; if debug_flag = FALSE, ALL rows of the data.frame are analyzed
   #if debug_flag = TRUE debug_number_iteration is used, so just the first XX rows of the data.frame are analyzed
   debug_flag=TRUE,
-  debug_number_iteration=2030
+  debug_number_iteration=2040
 )
 
 #call of the function can be done with do.call(offline_mode,list) or offline_mode(parameters, ...)
@@ -81,4 +81,4 @@ final_results <- do.call(offline_mode,param)
 #write.csv(final_results, "final_results.csv")
 
 #print out the last x rows of the returned data.frame for debugging or just seeing the results
-tail(final_results,35)
+tail(final_results,45)
