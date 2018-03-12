@@ -255,7 +255,7 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,treshold=1.
       if(max_rs>treshold*temp_res_sd["sd",index_biggest_res]){
         #add event = TRUE to events data.frame
         events[row,"Event"] <- TRUE
-        #remove value from the column from subset_used which is in this row the source for the outlier classification so that it is excluded from
+        #remove value from the column of subset_used which is in this row the source for the outlier classification so that it is excluded from
         #the values used to predict water quality at next time step needs to be checked if assigning there NA is the proper way to solve it or not
         subset_used[row,colnames(temp_res_sd[index_biggest_res])]<-NA
       }
