@@ -64,12 +64,12 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,treshold=1.
   
   #check if one or more elements in the vector vals are NOT column names of the loaded_data
   if(any(!(is.element(vals,colnames(loaded_data))))){
-    stop("One or more elements in the vector vals are NOT column names of the loaded_data data.frame.")
+    stop("One or more elements in the vector vals are NOT column names of the loaded_data data.frame. In this case function offline_mode will not work properly.")
   }
   
   #check if one or more elements of the vector vals are duplicated. This will break the the creation of the data frames and also later causes trouble if assigning results to one specific column name.
   if(any(duplicated(vals))){
-    stop("One or more elements of the vector vals are duplicated.")
+    stop("One or more elements of the vector vals are duplicated. In this case function offline_mode will not work properly.")
   }
   
   #check if debugging/testing mode is selected or not
