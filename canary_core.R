@@ -59,7 +59,12 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,treshold=1.
   ### check vals
   #check if vals is empty or not passed to the function
   if(is.null(vals)){
-    stop("No vector vals of column names is passed to the function.")
+    stop("No data object vals of column names is passed to the function.")
+  }
+  
+  #check if passed data object is a vector
+  if(!is.vector(vals)){
+    stop("Function needs data object vals in the form of a vector to run properly")
   }
   
   #check if one or more elements in the vector vals are NOT column names of the loaded_data
