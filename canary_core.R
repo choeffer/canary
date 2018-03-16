@@ -88,7 +88,7 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,treshold=1.
     number_iteration<-nrow(loaded_data)
   }
   
-  #check if window size + bed_windows is smaller or equal number_iteration; if not the function offline_mode will not work properly
+  #check if window size + bed_windows is smaller number_iteration; if not the function offline_mode will not work properly
   if((window_size+bed_window)>number_iteration){
     stop("window size + bed_window=",window_size+bed_window," is bigger than number_iteration=",number_iteration,". In this case function offline_mode will not work properly.")
   }
