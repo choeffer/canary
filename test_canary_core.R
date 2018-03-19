@@ -44,8 +44,8 @@ param<-list(
   #define window size
   window_size = 2000,
   
-  #define treshold for decision if outlier or not depending on residuals
-  treshold = 1.5,
+  #define threshold for decision if outlier or not depending on residuals
+  threshold = 1.5,
   
   #define which algorithm to use for prediction of last row of window
   used_algo = lm,
@@ -61,7 +61,7 @@ param<-list(
   bed_window=5,
   #define probability for BED function
   prob_bed=0.01,
-  #define treshold probability if event is detected or not
+  #define threshold probability if event is detected or not
   bed_tresh=0.975,
   
   #debug/test mode; if debug_flag = FALSE, ALL rows of the data.frame are analyzed

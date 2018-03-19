@@ -24,7 +24,7 @@
 #########################################################################
 
 #define function offline_mode with given default values which can be called from another R script
-offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,treshold=1.5,used_algo=lm,bed_window=5,prob_bed=0.01,bed_tresh=0.975,debug_flag=FALSE,debug_number_iteration=2040,...){
+offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,threshold=1.5,used_algo=lm,bed_window=5,prob_bed=0.01,bed_tresh=0.975,debug_flag=FALSE,debug_number_iteration=2040,...){
   
   #how to pass variables to a function 
   #https://cran.r-project.org/doc/manuals/r-devel/R-intro.html#Named-arguments-and-defaults
@@ -225,12 +225,12 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,treshold=1.
       #check for NA values because they brake the if statement
       if(!is.na(temp_res_sd["res",used_name])){
         #outlier
-        if(temp_res_sd["res",used_name]>treshold*temp_res_sd["sd",used_name]){
+        if(temp_res_sd["res",used_name]>threshold*temp_res_sd["sd",used_name]){
           #add event = TRUE to events_col data.frame
           events_col[row,paste0(used_name,"_event")]=TRUE
         }
         #backround
-        if(temp_res_sd["res",used_name]<=treshold*temp_res_sd["sd",used_name]){
+        if(temp_res_sd["res",used_name]<=threshold*temp_res_sd["sd",used_name]){
           #add event = FALSE to events_col data.frame
           events_col[row,paste0(used_name,"_event")]=FALSE
         }
@@ -250,14 +250,14 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,treshold=1.
         events_col_bed[row,paste0(used_name, "_prob_event")]<-1-binevdis(occur_col_true,bed_window,prob_bed)
       }
     }
-    #find biggest residual in temp_res_sd and compare it with treshold
+    #find biggest residual in temp_res_sd and compare it with threshold
     index_biggest_res<-which.max(temp_res_sd["res",])
     max_rs<-temp_res_sd["res",index_biggest_res]
     #check if event or not (Result outlier Classification)
     #check for existence of NA values because they break the if statement
     if(length(max_rs) > 0){
       #outlier
-      if(max_rs>treshold*temp_res_sd["sd",index_biggest_res]){
+      if(max_rs>threshold*temp_res_sd["sd",index_biggest_res]){
         #add event = TRUE to events data.frame
         events[row,"Event"] <- TRUE
         #remove value from the column of subset_used which is in this row the source for the outlier classification so that it is excluded from
@@ -265,7 +265,7 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,treshold=1.
         subset_used[row,colnames(temp_res_sd[index_biggest_res])]<-NA
       }
       #backround
-      if(max_rs<=treshold*temp_res_sd["sd",index_biggest_res]){
+      if(max_rs<=threshold*temp_res_sd["sd",index_biggest_res]){
         #add event = FALSE to events data.frame
         events[row,"Event"] <- FALSE
         
