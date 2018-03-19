@@ -62,7 +62,7 @@ param<-list(
   #define probability for BED function
   prob_bed=0.01,
   #define threshold probability if event is detected or not
-  bed_tresh=0.975,
+  bed_thresh=0.975,
   
   #debug/test mode; if debug_flag = FALSE, ALL rows of the data.frame are analyzed
   #if debug_flag = TRUE debug_number_iteration is used, so just the first XX rows of the data.frame are analyzed

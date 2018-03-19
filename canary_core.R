@@ -24,7 +24,7 @@
 #########################################################################
 
 #define function offline_mode with given default values which can be called from another R script
-offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,threshold=1.5,used_algo=lm,bed_window=5,prob_bed=0.01,bed_tresh=0.975,debug_flag=FALSE,debug_number_iteration=2040,...){
+offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,threshold=1.5,used_algo=lm,bed_window=5,prob_bed=0.01,bed_thresh=0.975,debug_flag=FALSE,debug_number_iteration=2040,...){
   
   #how to pass variables to a function 
   #https://cran.r-project.org/doc/manuals/r-devel/R-intro.html#Named-arguments-and-defaults
@@ -284,13 +284,13 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,threshold=1
       #Calculation of the probability of an event, therefore 1-binevdis
       temp_prob_event <- 1-binevdis(occur_true,bed_window,prob_bed)
       events_bed[row,"Prob_event"] <- temp_prob_event
-      ### check if probability of an event is bigger a chosen threshold (defined by bed_tresh)
+      ### check if probability of an event is bigger a chosen threshold (defined by bed_thresh)
       #if yes, mark it as TRUE -> event
-      if(temp_prob_event>=bed_tresh){
+      if(temp_prob_event>=bed_thresh){
         events_final[row,"Final_event"]<-TRUE
       }
       #if not, mark it as FALSE -> NO event
-      if(temp_prob_event<=bed_tresh){
+      if(temp_prob_event<=bed_thresh){
         events_final[row,"Final_event"]<-FALSE
       }
     }
