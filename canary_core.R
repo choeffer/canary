@@ -33,18 +33,18 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,threshold=1
   ### check loaded_data
   #check if data object is empty or not passed to the function
   if(is.null(loaded_data)){
-    stop("No data object loaded_data is passed to the function.")
+    stop("Function needs data object loaded_data to run.")
   }
   
   #check if passed data object is a data.frame
   if(!is.data.frame(loaded_data)){
-    stop("Function needs data object loaded_data in the form of a data.frame to run properly")
+    stop("Function needs data object loaded_data in the form of a data.frame to run properly.")
   }
 
   #check if one or more NA values are in the data.frame; anyNA instead of any(is.na) is used, see
   #https://stackoverflow.com/questions/6551825/fastest-way-to-detect-if-vector-has-at-least-1-na/35713234#35713234
   if(anyNA(loaded_data)){
-    warning("Given loaded_data data.frame contains one ore more NA values!")
+    warning("Given loaded_data data.frame contains one ore more NA values! This influences the behaviour of the used_algo and other parts of the code.")
   }
   
   #check if first column of the data object is of data type factor which indicates the timestamp column
@@ -53,13 +53,14 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,threshold=1
     subset_loaded_data <- loaded_data[,-1]
   }
   else{
-    stop("Unexpected structure in the given loaded_data data.frame. Function offline_mode of canary_core.R expects data type factor in the first column of loaded_data indicating that the first column contains the timestamps")
+    stop("Unexpected structure in the given loaded_data data.frame. Function offline_mode of canary_core.R expects data type factor in the first column of loaded_data indicating that the first column contains the timestamps. Otherwise it will not
+    run properly.")
   }
   
   ### check vals
   #check if vals is empty or not passed to the function
   if(is.null(vals)){
-    stop("No data object vals of column names is passed to the function.")
+    stop("Function needs data object vals to run.")
   }
   
   #check if passed data object is a vector
@@ -69,12 +70,12 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,threshold=1
   
   #check if one or more elements in the vector vals are NOT column names of the loaded_data
   if(any(!(is.element(vals,colnames(loaded_data))))){
-    stop("One or more elements in the vector vals are NOT column names of the loaded_data data.frame. In this case function offline_mode will not work properly.")
+    stop("One or more elements in the vector vals are NOT column names of the loaded_data data.frame. In this case function offline_mode will not run properly.")
   }
   
   #check if one or more elements of the vector vals are duplicated. This will break the the creation of the data frames and also later causes trouble if assigning results to one specific column name.
   if(any(duplicated(vals))){
-    stop("One or more elements of the vector vals are duplicated. In this case function offline_mode will not work properly.")
+    stop("One or more elements of the vector vals are duplicated. In this case function offline_mode will not run properly.")
   }
   
   #check if debugging/testing mode is selected or not
@@ -90,7 +91,7 @@ offline_mode <- function(loaded_data=NULL,vals=NULL,window_size=2000,threshold=1
   
   #check if window size + bed_windows is smaller number_iteration; if not the function offline_mode will not work properly
   if((window_size+bed_window)>number_iteration){
-    stop("window size + bed_window=",window_size+bed_window," is bigger than number_iteration=",number_iteration,". In this case function offline_mode will not work properly.")
+    stop("window size + bed_window=",window_size+bed_window," is bigger than number_iteration=",number_iteration,". In this case function offline_mode will not run properly.")
   }
 
   ### BED (Binomial Event Discriminator)
